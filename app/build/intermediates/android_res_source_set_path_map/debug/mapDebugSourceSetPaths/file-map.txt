@@ -1,0 +1,8 @@
+com.example.gestorbaos.app-pngs-0 /Users/daniel/AndroidStudioProjects/GestorBaos2/app/build/generated/res/pngs/debug
+com.example.gestorbaos.app-updated_navigation_xml-1 /Users/daniel/AndroidStudioProjects/GestorBaos2/app/build/generated/updated_navigation_xml/debug
+com.example.gestorbaos.app-packageDebugResources-2 /Users/daniel/AndroidStudioProjects/GestorBaos2/app/build/intermediates/incremental/debug/packageDebugResources/merged.dir
+com.example.gestorbaos.app-packageDebugResources-3 /Users/daniel/AndroidStudioProjects/GestorBaos2/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir
+com.example.gestorbaos.app-debug-4 /Users/daniel/AndroidStudioProjects/GestorBaos2/app/build/intermediates/merged_res/debug/mergeDebugResources
+com.example.gestorbaos.app-debug-5 /Users/daniel/AndroidStudioProjects/GestorBaos2/app/src/debug/res
+com.example.gestorbaos.app-main-6 /Users/daniel/AndroidStudioProjects/GestorBaos2/app/src/main/res
+gradleHome-0 /Users/daniel/.gradle

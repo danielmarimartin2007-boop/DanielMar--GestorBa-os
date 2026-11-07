@@ -1,5 +1,7 @@
 package com.example.gestorbaos.ui.theme.navegacion
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -10,7 +12,9 @@ import androidx.navigation.navArgument
 import com.example.gestorbaos.model.Componente
 import com.example.gestorbaos.model.Maquina
 import com.example.gestorbaos.model.Receta
+import com.example.gestorbaos.ui.theme.screen.AjusteScreen
 import com.example.gestorbaos.ui.theme.screen.DetalleScreen
+import com.example.gestorbaos.ui.theme.screen.FormularioScreen
 import com.example.gestorbaos.ui.theme.screen.HistorialScreen
 import com.example.gestorbaos.ui.theme.screen.HomeScreen
 import com.example.gestorbaos.ui.theme.screen.PerfilScreen
@@ -23,14 +27,21 @@ object Rutas {
     const val PERFIL = "perfil"
     const val DETALLE = "detalle/{codigo}"
 
+    const val NUEVA_RECETA = "nueva_receta"
+    const val EDITAR_RECETA = "editar_receta/{codigo}"
+    fun editarRecetaConId(codigo: Int) = "editar_receta/$codigo"
+
     fun detalleConId(codigo: Int) = "detalle/$codigo"
+
+    const val AJUSTE = "ajuste?recetaId={recetaId}"
+    fun ajusteConId(codigo: Int? = null) = if (codigo != null) "ajuste?recetaId=$codigo" else "ajuste"
 }
 
-val baseDeDatosRecetas = listOf(
+val baseDeDatosRecetas = androidx.compose.runtime.mutableStateListOf(
     Receta(
         codigo = 15,
         nombre = "TOB ALGODON",
-        maquina = Maquina.SANFOR,
+        maquina = "SANFOR",
         componentes = listOf(
             Componente(nombre = "TUBINGAL RNJ", cant = "18 cc/l", mano = "false"),
             Componente(nombre = "ÁCIDO ACÉTICO 80%", cant = "3 cc/l", mano = "false"),
@@ -40,7 +51,7 @@ val baseDeDatosRecetas = listOf(
     Receta(
         codigo = 67,
         nombre = "BLANQUEO+MERCERIZADO",
-        maquina = Maquina.BRUGMAN,
+        maquina = "BRUGMAN",
         componentes = listOf(
             Componente(nombre = "SOSA CÁUSTICA", cant = "30 cc/l", mano = "false"),
             Componente(nombre = "TANACID UNA", cant = "30 cc/l", mano = "false"),
@@ -51,7 +62,7 @@ val baseDeDatosRecetas = listOf(
     Receta(
         codigo = 27944,
         nombre = "IMPREG. ALGODÓN DIFÍCIL",
-        maquina = Maquina.OSTHOFF,
+        maquina = "OSTHOFF",
         componentes = listOf(
             Componente(nombre = "SOSA CÁUSTICA", cant = "40 cc/l", mano = "true"),
             Componente(nombre = "TANNEX HC-BS", cant = "4 cc/l", mano = "true"),
@@ -62,6 +73,7 @@ val baseDeDatosRecetas = listOf(
     )
 )
 
+@RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
 @Composable
 fun AppNavHost(
     navController: NavHostController,
@@ -72,10 +84,13 @@ fun AppNavHost(
         startDestination = Rutas.HOME,
         modifier = modifier
     ) {
+
         composable(Rutas.HOME) {
             HomeScreen(
-                recetasFavoritas = baseDeDatosRecetas.take(2),
-                onRecetaClick = { navController.navigate(Rutas.detalleConId(it)) }
+                recetasFavoritas = baseDeDatosRecetas,
+                onRecetaClick = { id -> navController.navigate(Rutas.detalleConId(id)) },
+                onNuevaRecetaClick = { navController.navigate(Rutas.NUEVA_RECETA) },
+                onAjusteClick = { navController.navigate(Rutas.ajusteConId()) }
             )
         }
 
@@ -124,7 +139,63 @@ fun AppNavHost(
             val codigo = backStackEntry.arguments?.getInt("codigo") ?: 0
             val recetaSeleccionada = buscarReceta(codigo)
 
-            DetalleScreen(receta = recetaSeleccionada)
+            DetalleScreen(
+                receta = recetaSeleccionada,
+                onEditClick = { navController.navigate(Rutas.editarRecetaConId(codigo)) },
+                onIniciarAjusteClick = { id -> navController.navigate(Rutas.ajusteConId(id)) }
+            )
+        }
+
+        composable(Rutas.NUEVA_RECETA) {
+            FormularioScreen(
+                modifier = Modifier,
+                onSaveClick = { nuevaReceta ->
+                    baseDeDatosRecetas.add(nuevaReceta)
+                    navController.popBackStack()
+                },
+                onCancelarClick = { navController.popBackStack() },
+                recetaInicial = null
+            )
+        }
+
+        composable(
+            route = Rutas.EDITAR_RECETA,
+            arguments = listOf(navArgument("codigo") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val codigo = backStackEntry.arguments?.getInt("codigo") ?: 0
+
+            FormularioScreen(
+                modifier = Modifier,
+                onSaveClick = { recetaActualizada ->
+                    val indice = baseDeDatosRecetas.indexOfFirst { it.codigo == recetaActualizada.codigo }
+
+                    if (indice != -1) {
+                        baseDeDatosRecetas[indice] = recetaActualizada
+                    }
+
+                    navController.popBackStack()
+                },
+                onCancelarClick = { navController.popBackStack() },
+                recetaInicial = baseDeDatosRecetas.find { it.codigo == codigo }
+            )
+        }
+
+        composable(
+            route = Rutas.AJUSTE,
+            arguments = listOf(
+                navArgument("recetaId") {
+                    type = NavType.IntType
+                    defaultValue = -1
+                }
+            )
+        ) { backStackEntry ->
+            val recetaId = backStackEntry.arguments?.getInt("recetaId").takeIf { it != -1 }
+
+            AjusteScreen(
+                recetas = baseDeDatosRecetas,
+                recetaInicialId = recetaId,
+                onVolverClick = { navController.popBackStack() }
+            )
         }
     }
 }

@@ -1,12 +1,9 @@
 package com.example.gestorbaos.ui.theme.screen
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -34,7 +31,7 @@ fun PerfilScreen() {
                 .clip(CircleShape)
                 .border(
                     width = 4.dp,
-                    color = Color.Blue,
+                    color = MaterialTheme.colorScheme.primary,
                     shape = CircleShape
                 ),
             painter = painterResource(R.drawable.sans),
@@ -50,23 +47,26 @@ fun PerfilScreen() {
 
         Button(
             onClick = { },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurface)
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            )
         ) {
-            Text("AJUSTES")
+            Text("AJUSTES", fontWeight = FontWeight.Bold)
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
         Button(
             onClick = { },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().height(56.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.error,
                 contentColor = MaterialTheme.colorScheme.onError
             )
         ) {
-            Text("CERRAR SESIÓN")
+            Text("CERRAR SESIÓN", fontWeight = FontWeight.Bold)
         }
     }
 }

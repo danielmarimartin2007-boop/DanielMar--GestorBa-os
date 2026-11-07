@@ -1,5 +1,6 @@
 package com.example.gestorbaos
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -18,6 +19,7 @@ import com.example.gestorbaos.ui.theme.navegacion.MyAppTopBar
 class MainActivity : ComponentActivity() {
 
 
+    @SuppressLint("NewApi")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

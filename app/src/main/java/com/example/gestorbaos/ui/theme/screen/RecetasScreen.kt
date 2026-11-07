@@ -32,7 +32,6 @@ fun RecetasScreen(
         Row(modifier = Modifier.padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterChip(selected = true, onClick = { }, label = { Text("Todas") })
             FilterChip(selected = false, onClick = { }, label = { Text("Por Máquina") })
-            FilterChip(selected = false, onClick = { }, label = { Text("Por Tipo") })
         }
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {

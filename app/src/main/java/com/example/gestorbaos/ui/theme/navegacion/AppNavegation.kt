@@ -51,7 +51,7 @@ val baseDeDatosRecetas = androidx.compose.runtime.mutableStateListOf(
     Receta(
         codigo = 67,
         nombre = "BLANQUEO+MERCERIZADO",
-        maquina = "BRUGMAN",
+        maquina = "BRUGMAN 1",
         componentes = listOf(
             Componente(nombre = "SOSA CÁUSTICA", cant = "30 cc/l", mano = "false"),
             Componente(nombre = "TANACID UNA", cant = "30 cc/l", mano = "false"),
@@ -69,6 +69,89 @@ val baseDeDatosRecetas = androidx.compose.runtime.mutableStateListOf(
             Componente(nombre = "TANADYE BOOSTER", cant = "6 cc/l", mano = "true"),
             Componente(nombre = "AGUA OXIGENADA 50%", cant = "50 cc/l", mano = "false"),
             Componente(nombre = "PERSULFATO SÓDICO", cant = "5 g/l", mano = "true")
+        )
+    ),
+    Receta(
+        codigo= 19,
+        nombre= "T.P ALGODÓN 100%",
+        maquina= "SANFOR",
+        componentes= listOf(
+            Componente(nombre= "ÁCIDO ACÉTICO 80%", cant= "2 cc/l", mano= "false"),
+            Componente(nombre= "TUBINGAL RNJ", cant= "40 cc/l", mano= "false"),
+            Componente(nombre= "AUXICOL JET", cant= "0,7 cc/l", mano= "true")
+        )
+    ),
+    Receta(
+        codigo= 68,
+        nombre= "OSTHOFF IMPREG. ALGODON 100%",
+        maquina= "OSTHOFF",
+        componentes= listOf(
+            Componente(nombre= "SOSA CÁUSTICA", cant= "40 cc/l", mano= "false"),
+            Componente(nombre= "FELOSAN FOX", cant= "8 cc/l", mano= "false"),
+            Componente(nombre= "CONTAVAN ICE", cant= "5 cc/l", mano= "false"),
+            Componente(nombre= "AGUA OXIGENADA 50%", cant= "50 cc/l", mano= "false"),
+            Componente(nombre= "PERSULFATO SÓDICO", cant= "5 g/l", mano= "true"),
+            Componente(nombre= "SUBITOL NSN", cant= "1 cc/l", mano= "true")
+        )
+    ),
+    Receta(
+        codigo= 70,
+        nombre= "OSTHOFF IMPREG. MEZCLAS",
+        maquina= "OSTHOFF",
+        componentes= listOf(
+            Componente(nombre= "SOSA CÁUSTICA", cant= "25 cc/l", mano= "false"),
+            Componente(nombre= "FELOSAN FOX", cant= "6 cc/l", mano= "false"),
+            Componente(nombre= "CONTAVAN ICE", cant= "2,8 cc/l", mano= "false"),
+            Componente(nombre= "AGUA OXIGENADA 50%", cant= "28 cc/l", mano= "false"),
+            Componente(nombre= "SUBITOL NSN", cant= "1 cc/l", mano= "true")
+        )
+    ),
+    Receta(
+        codigo= 89,
+        nombre= "LAVADO IMPREGNACION",
+        maquina= "BRUGMAN 1",
+        componentes= listOf(
+            Componente(nombre= "FELOSAN FOX", cant= "15 cc/l", mano= "false"),
+            Componente(nombre= "SOSA CÁUSTICA", cant= "8 cc/l", mano= "false"),
+            Componente(nombre= "TANACID UNA", cant= "12 cc/l", mano= "false")
+        )
+    ),
+    Receta(
+        codigo= 93,
+        nombre= "LAVADO ANTES TINTURA",
+        maquina= "BRUGMAN 1",
+        componentes= listOf(
+            Componente(nombre= "TANACID UNA", cant= "5,85 cc/l", mano= "false")
+        )
+    ),
+    Receta(
+        codigo= 13552,
+        nombre="SANFOR TOB NUEVO",
+        maquina= "SANFOR",
+        componentes= listOf(
+            Componente(nombre= "TUBINGAL RNJ", cant= "8 cc/l", mano= "false"),
+            Componente(nombre= "ÁCIDO ACÉTICO 80%", cant= "4 cc/l", mano= "false"),
+            Componente(nombre= "AUXICOL JET", cant= "0,7 cc/l", mano= "true")
+        )
+    ),
+    Receta(
+        codigo=14120,
+        nombre="LAVADO+MERCERIZADO",
+        maquina= "BRUGMAN 1",
+        componentes= listOf(
+            Componente(nombre= "FELOSAN FOX", cant= "15 cc/l", mano= "false"),
+            Componente(nombre= "SOSA CÁUSTICA", cant= "10 cc/l", mano= "false"),
+            Componente(nombre= "TANACID UNA", cant= "24 cc/l", mano= "false")
+        )
+    ),
+    Receta(
+        codigo= 14835,
+        nombre= "SANFOR INDIGO LAVADO",
+        maquina= "SANFOR",
+        componentes= listOf(
+            Componente(nombre= "ÁCIDO ACÉTICO 80%", cant= "4 cc/l", mano= "false"),
+            Componente(nombre= "TUBINGAL RNJ", cant= "20 cc/l", mano= "false"),
+            Componente(nombre= "AUXICOL JET", cant= "1,4 cc/l", mano= "true")
         )
     )
 )

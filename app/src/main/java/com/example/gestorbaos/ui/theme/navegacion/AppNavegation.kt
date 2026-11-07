@@ -87,7 +87,7 @@ fun AppNavHost(
 
         composable(Rutas.HOME) {
             HomeScreen(
-                recetasFavoritas = baseDeDatosRecetas,
+                recetasFavoritas = baseDeDatosRecetas.take(2),
                 onRecetaClick = { id -> navController.navigate(Rutas.detalleConId(id)) },
                 onNuevaRecetaClick = { navController.navigate(Rutas.NUEVA_RECETA) },
                 onAjusteClick = { navController.navigate(Rutas.ajusteConId()) }
@@ -148,13 +148,12 @@ fun AppNavHost(
 
         composable(Rutas.NUEVA_RECETA) {
             FormularioScreen(
-                modifier = Modifier,
+                recetasExistentes = baseDeDatosRecetas,
                 onSaveClick = { nuevaReceta ->
                     baseDeDatosRecetas.add(nuevaReceta)
                     navController.popBackStack()
                 },
-                onCancelarClick = { navController.popBackStack() },
-                recetaInicial = null
+                onCancelarClick = { navController.popBackStack() }
             )
         }
 
@@ -166,6 +165,8 @@ fun AppNavHost(
 
             FormularioScreen(
                 modifier = Modifier,
+                recetaInicial = baseDeDatosRecetas.find { it.codigo == codigo },
+                recetasExistentes = baseDeDatosRecetas,
                 onSaveClick = { recetaActualizada ->
                     val indice = baseDeDatosRecetas.indexOfFirst { it.codigo == recetaActualizada.codigo }
 
@@ -175,8 +176,7 @@ fun AppNavHost(
 
                     navController.popBackStack()
                 },
-                onCancelarClick = { navController.popBackStack() },
-                recetaInicial = baseDeDatosRecetas.find { it.codigo == codigo }
+                onCancelarClick = { navController.popBackStack() }
             )
         }
 

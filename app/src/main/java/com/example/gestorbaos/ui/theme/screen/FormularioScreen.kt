@@ -18,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.gestorbaos.model.Componente
 import com.example.gestorbaos.model.Receta
+import com.example.gestorbaos.validacion.ErrorComponente
 import com.example.gestorbaos.validacion.FormularioValidator
 
 private fun extraerNumero(cant: String): String {
@@ -35,6 +36,7 @@ private fun extraerUnidad(cant: String): String {
 fun FormularioScreen(
     modifier: Modifier = Modifier,
     recetaInicial: Receta? = null,
+    recetasExistentes: List<Receta> = emptyList(),
     onSaveClick: (Receta) -> Unit,
     onCancelarClick: () -> Unit
 ) {
@@ -60,6 +62,7 @@ fun FormularioScreen(
 
     var errorCodigo by remember { mutableStateOf<String?>(null) }
     var errorNombre by remember { mutableStateOf<String?>(null) }
+    var erroresComponentes by remember { mutableStateOf<List<ErrorComponente>>(emptyList()) }
 
     Column(
         modifier = modifier
@@ -117,8 +120,8 @@ fun FormularioScreen(
                                 componentesList.add(Componente(nombre = "", cant = "", mano = "false"))
                             }
                         } else if (cantidadObjetivo < componentesList.size) {
-                            repeat(componentesList.size - cantidadObjetivo) {
-                                componentesList.removeLast()
+                            while (componentesList.size > cantidadObjetivo) {
+                                componentesList.removeAt(componentesList.lastIndex)
                             }
                         }
                     },
@@ -141,27 +144,35 @@ fun FormularioScreen(
                 Text("A Mano", modifier = Modifier.weight(0.7f), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodySmall)
             }
 
-            componentesList.forEachIndexed { index, comp ->
+            componentesList.take(numComponentes).forEachIndexed { index, comp ->
                 val isMano = comp.mano.equals("true", ignoreCase = true)
                 val numeroActual = extraerNumero(comp.cant)
                 val unidadActual = extraerUnidad(comp.cant)
 
+                val errorComp = erroresComponentes.getOrNull(index)
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.Top
                 ) {
                     OutlinedTextField(
                         value = comp.nombre,
                         onValueChange = { componentesList[index] = comp.copy(nombre = it) },
                         modifier = Modifier.weight(1.3f),
-                        singleLine = true
+                        singleLine = true,
+                        isError = errorComp?.errorNombre != null,
+                        supportingText = {
+                            errorComp?.errorNombre?.let {
+                                Text(text = it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall)
+                            }
+                        }
                     )
 
                     Row(
                         modifier = Modifier.weight(1.5f),
                         horizontalArrangement = Arrangement.spacedBy(2.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.Top
                     ) {
                         OutlinedTextField(
                             value = numeroActual,
@@ -172,6 +183,12 @@ fun FormularioScreen(
                             },
                             modifier = Modifier.weight(1f),
                             singleLine = true,
+                            isError = errorComp?.errorCantidad != null,
+                            supportingText = {
+                                errorComp?.errorCantidad?.let {
+                                    Text(text = it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall)
+                                }
+                            },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             placeholder = { Text("0") }
                         )
@@ -206,9 +223,9 @@ fun FormularioScreen(
                         shape = RoundedCornerShape(12.dp),
                         colors = IconButtonDefaults.filledIconToggleButtonColors(
                             containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                             contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            checkedContainerColor = MaterialTheme.colorScheme.primary,
+                            checkedContentColor = MaterialTheme.colorScheme.onPrimary
                         )
                     ) {
                         Text("✋", style = MaterialTheme.typography.titleLarge)
@@ -235,18 +252,27 @@ fun FormularioScreen(
 
             Button(
                 onClick = {
-                    errorCodigo = FormularioValidator.validarCodigo(codigo)
+                    errorCodigo = FormularioValidator.validarCodigo(
+                        codigo = codigo,
+                        recetasExistentes = recetasExistentes,
+                        recetaInicialId = recetaInicial?.codigo
+                    )
                     errorNombre = FormularioValidator.validarNombre(nombre)
 
-                    val componentesValidos = FormularioValidator.validarComponentes(componentesList)
+                    val listaComponentesActivos = componentesList.take(numComponentes)
+                    erroresComponentes = FormularioValidator.validarComponentes(listaComponentesActivos)
 
-                    if (errorCodigo == null && errorNombre == null && componentesValidos) {
+                    val hayErroresEnComponentes = erroresComponentes.any {
+                        it.errorNombre != null || it.errorCantidad != null
+                    }
+
+                    if (errorCodigo == null && errorNombre == null && !hayErroresEnComponentes) {
                         onSaveClick(
                             Receta(
                                 codigo = codigo.toIntOrNull() ?: 0,
                                 nombre = nombre,
                                 maquina = maquinaOptions[maquinaIndex],
-                                componentes = componentesList.toList()
+                                componentes = listaComponentesActivos
                             )
                         )
                     }

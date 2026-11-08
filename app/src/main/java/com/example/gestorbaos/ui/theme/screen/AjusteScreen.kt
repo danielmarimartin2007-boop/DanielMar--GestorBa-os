@@ -11,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material3.*
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,31 +39,31 @@ fun AjusteScreen(
     recetaInicialId: Int? = null,
     onVolverClick: () -> Unit
 ) {
-    var actualExpanded by remember { mutableStateOf(false) }
+    var desplegableActualAbierto by remember { mutableStateOf(false) }
 
-    var selectedActual by remember(recetaInicialId, recetas) {
+    var recetaActualSeleccionada by remember(recetaInicialId, recetas) {
         mutableStateOf(
             recetas.find { it.codigo == recetaInicialId } ?: recetas.firstOrNull()
         )
     }
-    var litrosActualText by remember { mutableStateOf("100") }
+    var litrosActualTexto by remember { mutableStateOf("100") }
 
-    var objetivoExpanded by remember { mutableStateOf(false) }
-    val recetasMismaMaquina = remember(selectedActual, recetas) {
-        recetas.filter { it.maquina == selectedActual?.maquina }
+    var desplegableObjetivoAbierto by remember { mutableStateOf(false) }
+
+    val recetasMismaMaquina = remember(recetaActualSeleccionada, recetas) {
+        recetas.filter { it.maquina == recetaActualSeleccionada?.maquina }
     }
-    var selectedObjetivo by remember(selectedActual, recetasMismaMaquina) {
+
+    var recetaObjetivoSeleccionada by remember(recetaActualSeleccionada, recetasMismaMaquina) {
         mutableStateOf(
             recetasMismaMaquina.getOrNull(1) ?: recetasMismaMaquina.firstOrNull()
         )
     }
-    var litrosObjetivoText by remember { mutableStateOf("2000") }
+    var litrosObjetivoTexto by remember { mutableStateOf("2000") }
 
-    var listaResultados by remember { mutableStateOf<List<AdicionResultado>?>(null) }
-
-    LaunchedEffect(selectedActual) {
-        if (selectedObjetivo?.maquina != selectedActual?.maquina) {
-            selectedObjetivo = recetasMismaMaquina.firstOrNull { it.codigo != selectedActual?.codigo }
+    LaunchedEffect(recetaActualSeleccionada) {
+        if (recetaObjetivoSeleccionada?.maquina != recetaActualSeleccionada?.maquina) {
+            recetaObjetivoSeleccionada = recetasMismaMaquina.firstOrNull { it.codigo != recetaActualSeleccionada?.codigo }
         }
     }
 
@@ -87,7 +86,7 @@ fun AjusteScreen(
             )
         }
 
-        // ---------------- 1. RECETA ACTUAL ----------------
+        // 1. RECETA ACTUAL
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -102,36 +101,37 @@ fun AjusteScreen(
                 )
 
                 ExposedDropdownMenuBox(
-                    expanded = actualExpanded,
-                    onExpandedChange = { actualExpanded = !actualExpanded }
+                    expanded = desplegableActualAbierto,
+                    onExpandedChange = { desplegableActualAbierto = !desplegableActualAbierto }
                 ) {
                     OutlinedTextField(
-                        value = selectedActual?.let { "${it.codigo} - ${it.nombre} (${it.maquina})" } ?: "Seleccionar receta",
+                        value = recetaActualSeleccionada?.let { "${it.codigo} - ${it.nombre} (${it.maquina})" } ?: "Seleccionar receta",
                         onValueChange = {},
                         readOnly = true,
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = actualExpanded) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = desplegableActualAbierto) },
                         modifier = Modifier
                             .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                             .fillMaxWidth()
                     )
                     ExposedDropdownMenu(
-                        expanded = actualExpanded,
-                        onDismissRequest = { actualExpanded = false }
+                        expanded = desplegableActualAbierto,
+                        onDismissRequest = { desplegableActualAbierto = false }
                     ) {
                         recetas.forEach { receta ->
                             DropdownMenuItem(
                                 text = { Text("${receta.codigo} - ${receta.nombre} (${receta.maquina})") },
                                 onClick = {
-                                    selectedActual = receta
-                                    actualExpanded = false
+                                    recetaActualSeleccionada = receta
+                                    desplegableActualAbierto = false
                                 }
                             )
                         }
                     }
                 }
 
-                selectedActual?.let { receta ->
-                    val volActual = litrosActualText.toDoubleOrNull() ?: 0.0
+                recetaActualSeleccionada?.let { receta ->
+                    val volumenFijoVisual = 100.0
+
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -142,7 +142,7 @@ fun AjusteScreen(
                         receta.componentes.forEach { comp ->
                             val conc = extraerValorNumerico(comp.cant)
                             val esGramos = comp.cant.contains("g/l", ignoreCase = true)
-                            val totalPresente = (volActual * conc) / 1000.0
+                            val totalPresente = (volumenFijoVisual * conc) / 1000.0
                             val unidadText = if (esGramos) "g" else "L"
 
                             Row(
@@ -162,8 +162,8 @@ fun AjusteScreen(
                 }
 
                 OutlinedTextField(
-                    value = litrosActualText,
-                    onValueChange = { litrosActualText = it.filter { c -> c.isDigit() } },
+                    value = litrosActualTexto,
+                    onValueChange = { litrosActualTexto = it.filter { c -> c.isDigit() } },
                     label = { Text("Litros Actuales (L)") },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -172,7 +172,7 @@ fun AjusteScreen(
             }
         }
 
-        // ---------------- 2. RECETA OBJETIVO ----------------
+        // RECETA OBJETIVO
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -187,36 +187,37 @@ fun AjusteScreen(
                 )
 
                 ExposedDropdownMenuBox(
-                    expanded = objetivoExpanded,
-                    onExpandedChange = { objetivoExpanded = !objetivoExpanded }
+                    expanded = desplegableObjetivoAbierto,
+                    onExpandedChange = { desplegableObjetivoAbierto = !desplegableObjetivoAbierto }
                 ) {
                     OutlinedTextField(
-                        value = selectedObjetivo?.let { "${it.codigo} - ${it.nombre}" } ?: "Seleccionar receta objetivo",
+                        value = recetaObjetivoSeleccionada?.let { "${it.codigo} - ${it.nombre}" } ?: "Seleccionar receta objetivo",
                         onValueChange = {},
                         readOnly = true,
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = objetivoExpanded) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = desplegableObjetivoAbierto) },
                         modifier = Modifier
                             .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                             .fillMaxWidth()
                     )
                     ExposedDropdownMenu(
-                        expanded = objetivoExpanded,
-                        onDismissRequest = { objetivoExpanded = false }
+                        expanded = desplegableObjetivoAbierto,
+                        onDismissRequest = { desplegableObjetivoAbierto = false }
                     ) {
                         recetasMismaMaquina.forEach { receta ->
                             DropdownMenuItem(
                                 text = { Text("${receta.codigo} - ${receta.nombre}") },
                                 onClick = {
-                                    selectedObjetivo = receta
-                                    objetivoExpanded = false
+                                    recetaObjetivoSeleccionada = receta
+                                    desplegableObjetivoAbierto = false
                                 }
                             )
                         }
                     }
                 }
 
-                selectedObjetivo?.let { receta ->
-                    val volObj = litrosObjetivoText.toDoubleOrNull() ?: 0.0
+                recetaObjetivoSeleccionada?.let { receta ->
+                    val volumenFijoVisual = 2000.0
+
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -227,7 +228,7 @@ fun AjusteScreen(
                         receta.componentes.forEach { comp ->
                             val conc = extraerValorNumerico(comp.cant)
                             val esGramos = comp.cant.contains("g/l", ignoreCase = true)
-                            val totalNecesario = (volObj * conc) / 1000.0
+                            val totalNecesario = (volumenFijoVisual * conc) / 1000.0
                             val unidadText = if (esGramos) "Kg" else "L"
 
                             Row(
@@ -247,8 +248,8 @@ fun AjusteScreen(
                 }
 
                 OutlinedTextField(
-                    value = litrosObjetivoText,
-                    onValueChange = { litrosObjetivoText = it.filter { c -> c.isDigit() } },
+                    value = litrosObjetivoTexto,
+                    onValueChange = { litrosObjetivoTexto = it.filter { c -> c.isDigit() } },
                     label = { Text("Litros Objetivo (L)") },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -258,19 +259,7 @@ fun AjusteScreen(
         }
 
         Button(
-            onClick = {
-                val volA = litrosActualText.toDoubleOrNull() ?: 0.0
-                val volO = litrosObjetivoText.toDoubleOrNull() ?: 0.0
-
-                if (selectedActual != null && selectedObjetivo != null && volO > 0) {
-                    listaResultados = calcularAjuste(
-                        recetaActual = selectedActual!!,
-                        volumenActual = volA,
-                        recetaObjetivo = selectedObjetivo!!,
-                        volumenObjetivo = volO
-                    )
-                }
-            },
+            onClick = { /*  */ },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
@@ -284,71 +273,75 @@ fun AjusteScreen(
             Text("CALCULAR AJUSTE DE BAÑO", fontWeight = FontWeight.Bold)
         }
 
-        // ---------------- 3. RESULTADO DE PREPARACIÓN ----------------
-        listaResultados?.let { resultados ->
-            val volO = litrosObjetivoText.toDoubleOrNull() ?: 0.0
+        // RESULTADO DE PREPARACIÓN
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(4.dp)
+        val resultadosSimulados = listOf(
+            AdicionResultado("AGUA", "", 1720.0, "L", false, true),
+            AdicionResultado("SOSA CÁUSTICA", "40 cc/l", 32.0, "L", false),
+            AdicionResultado("TANADYE BOOSTER", "6 cc/l", 12.0, "L", true),
+            AdicionResultado("PERSULFATO SÓDICO", "5 g/l", 10.0, "Kg", true)
+        )
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(4.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text(
-                        text = "PREPARACIÓN ORDENADOR",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold
-                    )
+                Text(
+                    text = "PREPARACIÓN ORDENADOR",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
 
-                    Text(
-                        text = "Tanque Ajuste\n${volO.toInt()} L",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                Text(
+                    text = "Tanque Ajuste\n2000 L",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
 
-                    HorizontalDivider()
+                HorizontalDivider()
 
-                    resultados.forEach { adicion ->
+                resultadosSimulados.forEach { adicion ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.weight(1f)
-                            ) {
+                            Text(
+                                text = if (adicion.esMano) "✋ " else "🔷 ",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Column {
                                 Text(
-                                    text = if (adicion.esMano) "✋ " else "🔷 ",
-                                    style = MaterialTheme.typography.titleMedium
+                                    text = adicion.nombre,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Bold
                                 )
-                                Column {
+                                if (adicion.concentracion.isNotBlank()) {
                                     Text(
-                                        text = adicion.nombre,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = FontWeight.Bold
+                                        text = "Conc: ${adicion.concentracion}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
-                                    if (adicion.concentracion.isNotBlank()) {
-                                        Text(
-                                            text = "Conc: ${adicion.concentracion}",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
                                 }
                             }
-
-                            Text(
-                                text = "${String.format(java.util.Locale.US, "%.1f", adicion.cantidad)} ${adicion.unidad}",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
                         }
+
+                        Text(
+                            text = "${String.format(java.util.Locale.US, "%.1f", adicion.cantidad)} ${adicion.unidad}",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
@@ -356,69 +349,12 @@ fun AjusteScreen(
     }
 }
 
-// ---------------- FUNCIONES DE CÁLCULO DE AJUSTE ----------------
-
 private fun extraerValorNumerico(texto: String): Double {
     val limpio = texto.replace("cc/l", "", ignoreCase = true)
         .replace("g/l", "", ignoreCase = true)
         .trim()
         .replace(",", ".")
     return limpio.toDoubleOrNull() ?: 0.0
-}
-
-private fun calcularAjuste(
-    recetaActual: Receta,
-    volumenActual: Double,
-    recetaObjetivo: Receta,
-    volumenObjetivo: Double
-): List<AdicionResultado> {
-    val resultados = mutableListOf<AdicionResultado>()
-    var acumuladoLitrosQuimicos = 0.0
-
-    recetaObjetivo.componentes.forEach { compObj ->
-        val concObj = extraerValorNumerico(compObj.cant)
-        val esGramos = compObj.cant.contains("g/l", ignoreCase = true)
-        val esMano = compObj.mano.equals("true", ignoreCase = true)
-
-        val compAct = recetaActual.componentes.find { it.nombre.equals(compObj.nombre, ignoreCase = true) }
-        val concAct = compAct?.let { extraerValorNumerico(it.cant) } ?: 0.0
-
-        val necesidadTotal = (volumenObjetivo * concObj) / 1000.0
-        val presenteActual = (volumenActual * concAct) / 1000.0
-        val cantidadAnadir = (necesidadTotal - presenteActual).coerceAtLeast(0.0)
-
-        val unidad = if (esGramos) "Kg" else "L"
-
-        if (!esGramos) {
-            acumuladoLitrosQuimicos += cantidadAnadir
-        }
-
-        resultados.add(
-            AdicionResultado(
-                nombre = compObj.nombre,
-                concentracion = compObj.cant,
-                cantidad = cantidadAnadir,
-                unidad = unidad,
-                esMano = esMano
-            )
-        )
-    }
-
-    val aguaNecesaria = ((volumenObjetivo - volumenActual) - acumuladoLitrosQuimicos).coerceAtLeast(0.0)
-
-    resultados.add(
-        0,
-        AdicionResultado(
-            nombre = "AGUA",
-            concentracion = "",
-            cantidad = aguaNecesaria,
-            unidad = "L",
-            esMano = false,
-            esAgua = true
-        )
-    )
-
-    return resultados
 }
 
 @Preview(showBackground = true)

@@ -10,7 +10,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.gestorbaos.model.Componente
-import com.example.gestorbaos.model.Maquina
 import com.example.gestorbaos.model.Receta
 import com.example.gestorbaos.ui.theme.screen.AjusteScreen
 import com.example.gestorbaos.ui.theme.screen.DetalleScreen
@@ -26,15 +25,12 @@ object Rutas {
     const val HISTORIAL = "historial"
     const val PERFIL = "perfil"
     const val DETALLE = "detalle/{codigo}"
-
     const val NUEVA_RECETA = "nueva_receta"
     const val EDITAR_RECETA = "editar_receta/{codigo}"
+    const val AJUSTE = "ajuste"
+
     fun editarRecetaConId(codigo: Int) = "editar_receta/$codigo"
-
     fun detalleConId(codigo: Int) = "detalle/$codigo"
-
-    const val AJUSTE = "ajuste?recetaId={recetaId}"
-    fun ajusteConId(codigo: Int? = null) = if (codigo != null) "ajuste?recetaId=$codigo" else "ajuste"
 }
 
 val baseDeDatosRecetas = androidx.compose.runtime.mutableStateListOf(
@@ -173,7 +169,7 @@ fun AppNavHost(
                 recetasFavoritas = baseDeDatosRecetas.take(2),
                 onRecetaClick = { id -> navController.navigate(Rutas.detalleConId(id)) },
                 onNuevaRecetaClick = { navController.navigate(Rutas.NUEVA_RECETA) },
-                onAjusteClick = { navController.navigate(Rutas.ajusteConId()) }
+                onAjusteClick = { navController.navigate(Rutas.AJUSTE) }
             )
         }
 
@@ -225,7 +221,7 @@ fun AppNavHost(
             DetalleScreen(
                 receta = recetaSeleccionada,
                 onEditClick = { navController.navigate(Rutas.editarRecetaConId(codigo)) },
-                onIniciarAjusteClick = { id -> navController.navigate(Rutas.ajusteConId(id)) }
+                onIniciarAjusteClick = { navController.navigate(Rutas.AJUSTE) }
             )
         }
 
@@ -252,31 +248,18 @@ fun AppNavHost(
                 recetasExistentes = baseDeDatosRecetas,
                 onSaveClick = { recetaActualizada ->
                     val indice = baseDeDatosRecetas.indexOfFirst { it.codigo == recetaActualizada.codigo }
-
                     if (indice != -1) {
                         baseDeDatosRecetas[indice] = recetaActualizada
                     }
-
                     navController.popBackStack()
                 },
                 onCancelarClick = { navController.popBackStack() }
             )
         }
 
-        composable(
-            route = Rutas.AJUSTE,
-            arguments = listOf(
-                navArgument("recetaId") {
-                    type = NavType.IntType
-                    defaultValue = -1
-                }
-            )
-        ) { backStackEntry ->
-            val recetaId = backStackEntry.arguments?.getInt("recetaId").takeIf { it != -1 }
-
+        composable(route = Rutas.AJUSTE) {
             AjusteScreen(
                 recetas = baseDeDatosRecetas,
-                recetaInicialId = recetaId,
                 onVolverClick = { navController.popBackStack() }
             )
         }

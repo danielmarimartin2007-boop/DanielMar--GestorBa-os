@@ -20,7 +20,7 @@ import com.example.gestorbaos.model.Receta
 fun DetalleScreen(
     receta: Receta,
     onEditClick: () -> Unit,
-    onIniciarAjusteClick: (Int) -> Unit
+    onIniciarAjusteClick: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Row(
@@ -94,7 +94,7 @@ fun DetalleScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Button(
-            onClick = { onIniciarAjusteClick(receta.codigo) },
+            onClick = onIniciarAjusteClick,
             modifier = Modifier.fillMaxWidth().height(56.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary,

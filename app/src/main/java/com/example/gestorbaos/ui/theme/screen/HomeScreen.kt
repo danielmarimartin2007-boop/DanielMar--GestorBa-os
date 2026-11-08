@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import com.example.gestorbaos.model.Receta
 import com.example.gestorbaos.model.Maquina
 import com.example.gestorbaos.ui.theme.components.RecetaCard
-import com.example.gestorbaos.ui.theme.navegacion.Rutas
 
 @Composable
 fun HomeScreen(
@@ -42,7 +41,6 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 2. Usamos onAjusteClick aquí
             Button(
                 onClick = onAjusteClick,
                 modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -56,7 +54,7 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Rounded.Star, contentDescription = null, tint = Color(0xFFFFC107))
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Recetas Favoritas", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)

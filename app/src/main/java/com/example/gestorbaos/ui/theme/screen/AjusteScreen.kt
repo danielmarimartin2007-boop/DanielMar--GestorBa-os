@@ -75,17 +75,6 @@ fun AjusteScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onVolverClick) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
-            }
-            Text(
-                text = "Ajuste de Baño",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
         // 1. RECETA ACTUAL
         Card(
             modifier = Modifier.fillMaxWidth(),

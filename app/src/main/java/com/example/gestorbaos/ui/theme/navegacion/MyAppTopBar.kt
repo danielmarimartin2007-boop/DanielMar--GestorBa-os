@@ -23,6 +23,9 @@ fun MyAppTopBar(
     val currentRoute = navBackStackEntry?.destination?.route
 
     val esDetalle = currentRoute?.startsWith("detalle/") == true
+    val esEditar = currentRoute?.startsWith("editar_receta/") == true
+    val esNueva = currentRoute == Rutas.NUEVA_RECETA
+    val esAjuste = currentRoute == Rutas.AJUSTE
 
     TopAppBar(
         title = {
@@ -32,13 +35,17 @@ fun MyAppTopBar(
                     Rutas.RECETAS -> "Catálogo de Recetas"
                     Rutas.HISTORIAL -> "Historial de Baños"
                     Rutas.PERFIL -> "Mi Perfil"
-                    else -> if (esDetalle) "Detalle de Receta" else ""
+                    else -> if (esDetalle) "Detalle de Receta"
+                    else if (esEditar) "Editar Receta"
+                    else if (esNueva) "Nueva Receta"
+                    else if (esAjuste) "Ajuste de Baño"
+                    else ""
                 },
                 style = MaterialTheme.typography.titleLarge
             )
         },
         navigationIcon = {
-            if (esDetalle) {
+            if (esDetalle || esEditar || esNueva || esAjuste) {
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
                 }

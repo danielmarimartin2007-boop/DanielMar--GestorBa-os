@@ -8,6 +8,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -20,6 +24,11 @@ fun RecetasScreen(
     recetas: List<Receta>,
     onRecetaClick: (Int) -> Unit
 ) {
+    var maquinaFiltro by remember { mutableStateOf("Todas") }
+
+    val recetasFiltradas = recetas.filter { receta ->
+        maquinaFiltro == "Todas" || receta.maquina == maquinaFiltro
+    }
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         OutlinedTextField(
             value = "",
@@ -29,13 +38,42 @@ fun RecetasScreen(
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) }
         )
 
-        Row(modifier = Modifier.padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(selected = true, onClick = { }, label = { Text("Todas") })
-            FilterChip(selected = false, onClick = { }, label = { Text("Por Máquina") })
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            val textStyle = MaterialTheme.typography.labelMedium
+
+            FilterChip(
+                selected = maquinaFiltro == "Todas",
+                onClick = { maquinaFiltro = "Todas" },
+                label = { Text("Todas", style = textStyle) },
+                border = FilterChipDefaults.filterChipBorder(enabled = true, selected = maquinaFiltro == "Todas")
+            )
+            FilterChip(
+                selected = maquinaFiltro == "SANFOR",
+                onClick = { maquinaFiltro = "SANFOR" },
+                label = { Text("SANFOR", style = textStyle) },
+                border = FilterChipDefaults.filterChipBorder(enabled = true, selected = maquinaFiltro == "SANFOR")
+            )
+            FilterChip(
+                selected = maquinaFiltro == "BRUGMAN 1",
+                onClick = { maquinaFiltro = "BRUGMAN 1" },
+                label = { Text("BRUGMAN 1", style = textStyle) },
+                border = FilterChipDefaults.filterChipBorder(enabled = true, selected = maquinaFiltro == "BRUGMAN 1")
+            )
+            FilterChip(
+                selected = maquinaFiltro == "OSTHOFF",
+                onClick = { maquinaFiltro = "OSTHOFF" },
+                label = { Text("OSTHOFF", style = textStyle) },
+                border = FilterChipDefaults.filterChipBorder(enabled = true, selected = maquinaFiltro == "OSTHOFF")
+            )
         }
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(recetas) { receta ->
+            items(recetasFiltradas) { receta ->
                 RecetaCard(
                     receta = receta,
                     modifier = Modifier.clickable { onRecetaClick(receta.codigo) }

@@ -40,6 +40,7 @@ fun DetalleScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+            /* Añadir Favorito */
             AssistChip(
                 onClick = { },
                 label = { Text(receta.maquina, fontWeight = FontWeight.Bold) },

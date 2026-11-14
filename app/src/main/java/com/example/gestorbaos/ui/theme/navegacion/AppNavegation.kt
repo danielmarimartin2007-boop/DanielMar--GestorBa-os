@@ -260,7 +260,6 @@ fun AppNavHost(
         composable(route = Rutas.AJUSTE) {
             AjusteScreen(
                 recetas = baseDeDatosRecetas,
-                onVolverClick = { navController.popBackStack() }
             )
         }
     }

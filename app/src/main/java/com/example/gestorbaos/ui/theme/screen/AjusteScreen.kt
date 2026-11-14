@@ -8,7 +8,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -37,7 +36,6 @@ data class AdicionResultado(
 fun AjusteScreen(
     recetas: List<Receta>,
     recetaInicialId: Int? = null,
-    onVolverClick: () -> Unit
 ) {
     var desplegableActualAbierto by remember { mutableStateOf(false) }
 
@@ -61,6 +59,23 @@ fun AjusteScreen(
     }
     var litrosObjetivoTexto by remember { mutableStateOf("2000") }
 
+    // Estado que guarda los resultados calculados
+    var listaResultados by remember {
+        mutableStateOf<List<AdicionResultado>?>(
+            if (recetaActualSeleccionada != null && recetaObjetivoSeleccionada != null) {
+                calcularAjuste(
+                    recetaActual = recetaActualSeleccionada!!,
+                    volumenActual = 100.0,
+                    recetaObjetivo = recetaObjetivoSeleccionada!!,
+                    volumenObjetivo = 2000.0
+                )
+            } else null
+        )
+    }
+
+    // Guarda los litros objetivo con los que se hizo el último cálculo para el título del tanque
+    var litrosTanqueCalculado by remember { mutableIntStateOf(2000) }
+
     LaunchedEffect(recetaActualSeleccionada) {
         if (recetaObjetivoSeleccionada?.maquina != recetaActualSeleccionada?.maquina) {
             recetaObjetivoSeleccionada = recetasMismaMaquina.firstOrNull { it.codigo != recetaActualSeleccionada?.codigo }
@@ -75,7 +90,7 @@ fun AjusteScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
 
-        // 1. RECETA ACTUAL
+        // ---------------- RECETA ACTUAL ----------------
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -119,7 +134,7 @@ fun AjusteScreen(
                 }
 
                 recetaActualSeleccionada?.let { receta ->
-                    val volumenFijoVisual = 100.0
+                    val volActual = litrosActualTexto.toDoubleOrNull() ?: 0.0
 
                     Column(
                         modifier = Modifier
@@ -131,7 +146,7 @@ fun AjusteScreen(
                         receta.componentes.forEach { comp ->
                             val conc = extraerValorNumerico(comp.cant)
                             val esGramos = comp.cant.contains("g/l", ignoreCase = true)
-                            val totalPresente = (volumenFijoVisual * conc) / 1000.0
+                            val totalPresente = (volActual * conc) / 1000.0
                             val unidadText = if (esGramos) "g" else "L"
 
                             Row(
@@ -161,7 +176,7 @@ fun AjusteScreen(
             }
         }
 
-        // RECETA OBJETIVO
+        // ---------------- RECETA OBJETIVO ----------------
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -205,7 +220,7 @@ fun AjusteScreen(
                 }
 
                 recetaObjetivoSeleccionada?.let { receta ->
-                    val volumenFijoVisual = 2000.0
+                    val volObj = litrosObjetivoTexto.toDoubleOrNull() ?: 0.0
 
                     Column(
                         modifier = Modifier
@@ -217,7 +232,7 @@ fun AjusteScreen(
                         receta.componentes.forEach { comp ->
                             val conc = extraerValorNumerico(comp.cant)
                             val esGramos = comp.cant.contains("g/l", ignoreCase = true)
-                            val totalNecesario = (volumenFijoVisual * conc) / 1000.0
+                            val totalNecesario = (volObj * conc) / 1000.0
                             val unidadText = if (esGramos) "Kg" else "L"
 
                             Row(
@@ -247,8 +262,22 @@ fun AjusteScreen(
             }
         }
 
+        // ---------------- BOTÓN CALCULAR ----------------
         Button(
-            onClick = { /*  */ },
+            onClick = {
+                val volActual = litrosActualTexto.toDoubleOrNull() ?: 0.0
+                val volObjetivo = litrosObjetivoTexto.toDoubleOrNull() ?: 0.0
+
+                if (recetaActualSeleccionada != null && recetaObjetivoSeleccionada != null && volObjetivo > 0) {
+                    litrosTanqueCalculado = volObjetivo.toInt()
+                    listaResultados = calcularAjuste(
+                        recetaActual = recetaActualSeleccionada!!,
+                        volumenActual = volActual,
+                        recetaObjetivo = recetaObjetivoSeleccionada!!,
+                        volumenObjetivo = volObjetivo
+                    )
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
@@ -262,75 +291,69 @@ fun AjusteScreen(
             Text("CALCULAR AJUSTE DE BAÑO", fontWeight = FontWeight.Bold)
         }
 
-        // RESULTADO DE PREPARACIÓN
-
-        val resultadosSimulados = listOf(
-            AdicionResultado("AGUA", "", 1720.0, "L", false, true),
-            AdicionResultado("SOSA CÁUSTICA", "40 cc/l", 32.0, "L", false),
-            AdicionResultado("TANADYE BOOSTER", "6 cc/l", 12.0, "L", true),
-            AdicionResultado("PERSULFATO SÓDICO", "5 g/l", 10.0, "Kg", true)
-        )
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(4.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+        // ---------------- RESULTADO DEL AJUSTE ----------------
+        listaResultados?.let { resultados ->
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(4.dp)
             ) {
-                Text(
-                    text = "PREPARACIÓN ORDENADOR",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold
-                )
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = "PREPARACIÓN ORDENADOR",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
 
-                Text(
-                    text = "Tanque Ajuste\n2000 L",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                    Text(
+                        text = "Tanque Ajuste\n$litrosTanqueCalculado L",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
 
-                HorizontalDivider()
+                    HorizontalDivider()
 
-                resultadosSimulados.forEach { adicion ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    resultados.forEach { adicion ->
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = if (adicion.esMano) "✋ " else "🔷 ",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Column {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f)
+                            ) {
                                 Text(
-                                    text = adicion.nombre,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = FontWeight.Bold
+                                    text = if (adicion.esMano) "✋ " else "🔷 ",
+                                    style = MaterialTheme.typography.titleMedium
                                 )
-                                if (adicion.concentracion.isNotBlank()) {
+                                Column {
                                     Text(
-                                        text = "Conc: ${adicion.concentracion}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        text = adicion.nombre,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Bold
                                     )
+                                    if (adicion.concentracion.isNotBlank()) {
+                                        Text(
+                                            text = "Conc: ${adicion.concentracion}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
                                 }
                             }
-                        }
 
-                        Text(
-                            text = "${String.format(java.util.Locale.US, "%.1f", adicion.cantidad)} ${adicion.unidad}",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
+                            Text(
+                                text = "${String.format(java.util.Locale.US, "%.1f", adicion.cantidad)} ${adicion.unidad}",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
@@ -338,12 +361,69 @@ fun AjusteScreen(
     }
 }
 
+// ---------------- FUNCIONES DE CÁLCULO DEL AJUSTE ----------------
+
 private fun extraerValorNumerico(texto: String): Double {
     val limpio = texto.replace("cc/l", "", ignoreCase = true)
         .replace("g/l", "", ignoreCase = true)
         .trim()
         .replace(",", ".")
     return limpio.toDoubleOrNull() ?: 0.0
+}
+
+private fun calcularAjuste(
+    recetaActual: Receta,
+    volumenActual: Double,
+    recetaObjetivo: Receta,
+    volumenObjetivo: Double
+): List<AdicionResultado> {
+    val resultados = mutableListOf<AdicionResultado>()
+    var acumuladoLitrosQuimicos = 0.0
+
+    recetaObjetivo.componentes.forEach { compObj ->
+        val concObj = extraerValorNumerico(compObj.cant)
+        val esGramos = compObj.cant.contains("g/l", ignoreCase = true)
+        val esMano = compObj.mano.equals("true", ignoreCase = true)
+
+        val compAct = recetaActual.componentes.find { it.nombre.equals(compObj.nombre, ignoreCase = true) }
+        val concAct = compAct?.let { extraerValorNumerico(it.cant) } ?: 0.0
+
+        val necesidadTotal = (volumenObjetivo * concObj) / 1000.0
+        val presenteActual = (volumenActual * concAct) / 1000.0
+        val cantidadAnadir = (necesidadTotal - presenteActual).coerceAtLeast(0.0)
+
+        val unidad = if (esGramos) "Kg" else "L"
+
+        if (!esGramos) {
+            acumuladoLitrosQuimicos += cantidadAnadir
+        }
+
+        resultados.add(
+            AdicionResultado(
+                nombre = compObj.nombre,
+                concentracion = compObj.cant,
+                cantidad = cantidadAnadir,
+                unidad = unidad,
+                esMano = esMano
+            )
+        )
+    }
+
+    val aguaNecesaria = ((volumenObjetivo - volumenActual) - acumuladoLitrosQuimicos).coerceAtLeast(0.0)
+
+    resultados.add(
+        0,
+        AdicionResultado(
+            nombre = "AGUA",
+            concentracion = "",
+            cantidad = aguaNecesaria,
+            unidad = "L",
+            esMano = false,
+            esAgua = true
+        )
+    )
+
+    return resultados
 }
 
 @Preview(showBackground = true)
@@ -379,8 +459,7 @@ fun AjusteScreenPreview() {
 
     MaterialTheme {
         AjusteScreen(
-            recetas = mockRecetas,
-            onVolverClick = {}
+            recetas = mockRecetas
         )
     }
 }

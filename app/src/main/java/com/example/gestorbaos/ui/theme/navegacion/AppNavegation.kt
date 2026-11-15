@@ -27,10 +27,11 @@ object Rutas {
     const val DETALLE = "detalle/{codigo}"
     const val NUEVA_RECETA = "nueva_receta"
     const val EDITAR_RECETA = "editar_receta/{codigo}"
-    const val AJUSTE = "ajuste"
+    const val AJUSTE = "ajuste?recetaId={recetaId}"
 
     fun editarRecetaConId(codigo: Int) = "editar_receta/$codigo"
     fun detalleConId(codigo: Int) = "detalle/$codigo"
+    fun ajusteConId(codigo: Int? = null) = if (codigo != null) "ajuste?recetaId=$codigo" else "ajuste"
 }
 
 val baseDeDatosRecetas = androidx.compose.runtime.mutableStateListOf(
@@ -169,7 +170,7 @@ fun AppNavHost(
                 recetasFavoritas = baseDeDatosRecetas.take(2),
                 onRecetaClick = { id -> navController.navigate(Rutas.detalleConId(id)) },
                 onNuevaRecetaClick = { navController.navigate(Rutas.NUEVA_RECETA) },
-                onAjusteClick = { navController.navigate(Rutas.AJUSTE) }
+                onAjusteClick = { navController.navigate(Rutas.ajusteConId()) }
             )
         }
 
@@ -221,7 +222,7 @@ fun AppNavHost(
             DetalleScreen(
                 receta = recetaSeleccionada,
                 onEditClick = { navController.navigate(Rutas.editarRecetaConId(codigo)) },
-                onIniciarAjusteClick = { navController.navigate(Rutas.AJUSTE) }
+                onIniciarAjusteClick = { id -> navController.navigate(Rutas.ajusteConId(id)) }
             )
         }
 
@@ -257,9 +258,20 @@ fun AppNavHost(
             )
         }
 
-        composable(route = Rutas.AJUSTE) {
+        composable(
+            route = Rutas.AJUSTE,
+            arguments = listOf(
+                navArgument("recetaId") {
+                    type = NavType.IntType
+                    defaultValue = -1
+                }
+            )
+        ) { backStackEntry ->
+            val recetaId = backStackEntry.arguments?.getInt("recetaId").takeIf { it != -1 }
+
             AjusteScreen(
                 recetas = baseDeDatosRecetas,
+                recetaInicialId = recetaId
             )
         }
     }

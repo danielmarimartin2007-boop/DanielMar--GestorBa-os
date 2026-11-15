@@ -41,7 +41,7 @@ fun AjusteScreen(
 
     var recetaActualSeleccionada by remember(recetaInicialId, recetas) {
         mutableStateOf(
-            recetas.find { it.codigo == recetaInicialId } ?: recetas.firstOrNull()
+            if (recetaInicialId != null) recetas.find { it.codigo == recetaInicialId } else null
         )
     }
     var litrosActualTexto by remember { mutableStateOf("100") }
@@ -49,36 +49,23 @@ fun AjusteScreen(
     var desplegableObjetivoAbierto by remember { mutableStateOf(false) }
 
     val recetasMismaMaquina = remember(recetaActualSeleccionada, recetas) {
-        recetas.filter { it.maquina == recetaActualSeleccionada?.maquina }
+        if (recetaActualSeleccionada != null) {
+            recetas.filter { it.maquina == recetaActualSeleccionada?.maquina }
+        } else {
+            emptyList()
+        }
     }
 
-    var recetaObjetivoSeleccionada by remember(recetaActualSeleccionada, recetasMismaMaquina) {
-        mutableStateOf(
-            recetasMismaMaquina.getOrNull(1) ?: recetasMismaMaquina.firstOrNull()
-        )
-    }
+    var recetaObjetivoSeleccionada by remember { mutableStateOf<Receta?>(null) }
     var litrosObjetivoTexto by remember { mutableStateOf("2000") }
 
-    // Estado que guarda los resultados calculados
-    var listaResultados by remember {
-        mutableStateOf<List<AdicionResultado>?>(
-            if (recetaActualSeleccionada != null && recetaObjetivoSeleccionada != null) {
-                calcularAjuste(
-                    recetaActual = recetaActualSeleccionada!!,
-                    volumenActual = 100.0,
-                    recetaObjetivo = recetaObjetivoSeleccionada!!,
-                    volumenObjetivo = 2000.0
-                )
-            } else null
-        )
-    }
-
-    // Guarda los litros objetivo con los que se hizo el último cálculo para el título del tanque
+    var listaResultados by remember { mutableStateOf<List<AdicionResultado>?>(null) }
     var litrosTanqueCalculado by remember { mutableIntStateOf(2000) }
 
     LaunchedEffect(recetaActualSeleccionada) {
-        if (recetaObjetivoSeleccionada?.maquina != recetaActualSeleccionada?.maquina) {
-            recetaObjetivoSeleccionada = recetasMismaMaquina.firstOrNull { it.codigo != recetaActualSeleccionada?.codigo }
+        if (recetaObjetivoSeleccionada != null && recetaObjetivoSeleccionada?.maquina != recetaActualSeleccionada?.maquina) {
+            recetaObjetivoSeleccionada = null
+            listaResultados = null
         }
     }
 
@@ -109,7 +96,7 @@ fun AjusteScreen(
                     onExpandedChange = { desplegableActualAbierto = !desplegableActualAbierto }
                 ) {
                     OutlinedTextField(
-                        value = recetaActualSeleccionada?.let { "${it.codigo} - ${it.nombre} (${it.maquina})" } ?: "Seleccionar receta",
+                        value = recetaActualSeleccionada?.let { "${it.codigo} - ${it.nombre} (${it.maquina})" } ?: "Seleccionar receta actual",
                         onValueChange = {},
                         readOnly = true,
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = desplegableActualAbierto) },
@@ -192,12 +179,18 @@ fun AjusteScreen(
 
                 ExposedDropdownMenuBox(
                     expanded = desplegableObjetivoAbierto,
-                    onExpandedChange = { desplegableObjetivoAbierto = !desplegableObjetivoAbierto }
+                    onExpandedChange = {
+                        if (recetaActualSeleccionada != null) {
+                            desplegableObjetivoAbierto = !desplegableObjetivoAbierto
+                        }
+                    }
                 ) {
                     OutlinedTextField(
-                        value = recetaObjetivoSeleccionada?.let { "${it.codigo} - ${it.nombre}" } ?: "Seleccionar receta objetivo",
+                        value = recetaObjetivoSeleccionada?.let { "${it.codigo} - ${it.nombre}" }
+                            ?: if (recetaActualSeleccionada == null) "Elige primero la receta actual" else "Seleccionar receta objetivo",
                         onValueChange = {},
                         readOnly = true,
+                        enabled = recetaActualSeleccionada != null,
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = desplegableObjetivoAbierto) },
                         modifier = Modifier
                             .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
@@ -278,6 +271,7 @@ fun AjusteScreen(
                     )
                 }
             },
+            enabled = recetaActualSeleccionada != null && recetaObjetivoSeleccionada != null,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
